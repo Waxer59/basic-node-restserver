@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { check } = require("express-validator");
+const { param, body } = require("express-validator");
 const {
   usuariosGet,
   usuariosPut,
@@ -21,9 +21,9 @@ router.get("/", usuariosGet);
 router.put(
   "/:id",
   [
-    check("id", "No es un ID valido").isMongoId(),
-    check("id").custom(existeUsuarioPorId),
-    check("rol").custom(esRoleValido),
+    param("id", "No es un ID valido").isMongoId(),
+    param("id", "No existe un usuario con ese ID").custom(existeUsuarioPorId),
+    body("rol", "No es un rol valido").custom(esRoleValido),
     validarCampos,
   ],
   usuariosPut
@@ -32,15 +32,14 @@ router.put(
 router.post(
   "/",
   [
-    check("nombre", "El nombre es obligatorio").not().isEmpty(),
-    check("password", "El password debe de ser mas de 6 letras").isLength({
+    body("nombre").not().isEmpty(),
+    body("password").isLength({
       min: 6,
     }),
-    check("correo", "El correo no es valido").isEmail(),
-    check("correo").custom(emailExiste), // si los argumentos estan vacios significa que mandara al middleware por defecto como argumentos el objeto que se esta procesando
-    // check('rol','No es un rol valido').isIn(['ADMIN_ROLE','USER_ROLE']),
-    check("rol").custom(esRoleValido),
-    validarCampos,
+    body("correo", "El correo no es valido").isEmail(),
+    body("correo", "EL correo ya esta registrado").custom(emailExiste),
+    body("rol", "No es un rol valido").custom(esRoleValido),
+    validarCampos
   ],
   usuariosPost
 );
@@ -48,9 +47,9 @@ router.post(
 router.delete(
   "/:id",
   [
-    check("id", "No es un ID valido").isMongoId(),
-    check("id").custom(existeUsuarioPorId),
-    validarCampos,
+    param("id", "No es un ID valido").isMongoId(),
+    param("id", "No existe un usuario con ese ID").custom(existeUsuarioPorId),
+    validarCampos
   ],
   usuariosDelete
 );
